@@ -17,6 +17,14 @@ Examples:
 * `ei String.to_integer/1` - Docs for `String.to_integer/1`
 * `ei String.to_integer/2` - Docs.for `String.to_integer/2`
 
+## About
+
+The project is inspired by ri (ruby interactive), that basically does
+the same thing, but for ruby, and by `IEx.Helpers.h` in the `iex` shell.
+
+Some of the code for extracting documentation from modules is more or
+less borrowed straight out of `IEx.Introspection.h`.
+
 ## TODO
 
 * `ei String.to_integer(some, args)` -> `String.to_integer/2`
