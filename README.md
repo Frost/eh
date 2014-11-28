@@ -2,7 +2,7 @@
 
 Look up Elixir documentation from the command line
 
-## How to use
+## Usage
 
 `ei` basically works like `IEx.Helpers.h`, except that you can run it
 from the command line.
