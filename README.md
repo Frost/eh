@@ -12,6 +12,7 @@ documentation on it.
 
 Examples:
 
+* `ei is_binary`           - Module docs for `Kernel.is_binary`
 * `ei String`              - Module docs for `String`
 * `ei String.to_integer`   - Docs for any arity of `String.to_integer`
 * `ei String.to_integer/1` - Docs for `String.to_integer/1`
@@ -27,7 +28,6 @@ less borrowed straight out of `IEx.Introspection.h`.
 
 ## TODO
 
-* support functions outside of  modules (e.g. `is_binary`)
 * `ei String.to_integer(some, args)` -> `String.to_integer/2`
 * Support for code outside of Elixir core (my own projects, etc)
 * Tests :(

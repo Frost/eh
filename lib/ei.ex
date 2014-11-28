@@ -17,6 +17,11 @@ defmodule Ei do
     end
   end
 
+  # Try to find function in Kernel if mod is nil
+  defp docs(nil, fun, arity) do
+    docs(Kernel, fun, arity)
+  end
+
   # Retrieve documentation for all definitions of a Module.function
   # The list comprehension here is borrowed from IEx.Introspection.
   defp docs(mod, fun, nil) do
