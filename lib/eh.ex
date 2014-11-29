@@ -44,7 +44,7 @@ defmodule Eh do
     term = "#{mod}.#{fun}/#{arity}"
     if docs = Code.get_docs(mod, :docs) do
       result = for {{f, a}, _ln, _tp, _a, doc} <- docs, f == fun, a == arity, !!doc do
-        { "#{mod}.#{fun}/#{arity}", doc }
+        { term, doc }
       end
       if result !=  [], do: {:ok, result}, else: {:not_found, term}
     else

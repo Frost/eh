@@ -8,7 +8,7 @@ defmodule EhTest do
   end
 
   defp doc_match_regex(term) do
-    head = ~r"\e\[0m\n\e\[7m\e\[1m + Elixir.#{term} +\e\[0m\n\e\[0m\n"
+    ~r"\e\[0m\n\e\[7m\e\[1m + Elixir.#{term} +\e\[0m\n\e\[0m\n"
   end
 
   test "find docs for Kernel function without module definition" do
