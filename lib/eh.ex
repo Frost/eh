@@ -1,4 +1,4 @@
-defmodule Ei do
+defmodule Eh do
   def main([definition | _tail]) do
     {mod, fun, arity} = parse_input(definition)
     case docs(mod, fun, arity) do

@@ -1,10 +1,10 @@
-# Ei
+# Eh
 
 Look up Elixir documentation from the command line
 
 ## Usage
 
-`ei` basically works like `IEx.Helpers.h`, except that you can run it
+`eh` basically works like `IEx.Helpers.h`, except that you can run it
 from the command line.
 
 It prints the documentation for its first argument, if it can find any
@@ -12,11 +12,11 @@ documentation on it.
 
 Examples:
 
-* `ei is_binary`           - Module docs for `Kernel.is_binary`
-* `ei String`              - Module docs for `String`
-* `ei String.to_integer`   - Docs for any arity of `String.to_integer`
-* `ei String.to_integer/1` - Docs for `String.to_integer/1`
-* `ei String.to_integer/2` - Docs.for `String.to_integer/2`
+* `eh is_binary`           - Module docs for `Kernel.is_binary`
+* `eh String`              - Module docs for `String`
+* `eh String.to_integer`   - Docs for any arity of `String.to_integer`
+* `eh String.to_integer/1` - Docs for `String.to_integer/1`
+* `eh String.to_integer/2` - Docs.for `String.to_integer/2`
 
 ## About
 
@@ -28,6 +28,6 @@ less borrowed straight out of `IEx.Introspection.h`.
 
 ## TODO
 
-* `ei String.to_integer(some, args)` -> `String.to_integer/2`
+* `eh String.to_integer(some, args)` -> `String.to_integer/2`
 * Support for code outside of Elixir core (my own projects, etc)
 * Tests :(
