@@ -20,8 +20,8 @@ Examples:
 
 ## About
 
-The project is inspired by ri (ruby interactive), that basically does
-the same thing, but for ruby, and by `IEx.Helpers.h` in the `iex` shell.
+The project is inspired by ri (ruby interactive) and by `IEx.Helpers.h`,
+that basically does the same thing, but for ruby.
 
 Some of the code for extracting documentation from modules is more or
 less borrowed straight out of `IEx.Introspection.h`.
