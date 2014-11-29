@@ -4,16 +4,19 @@ defmodule Eh do
     case docs(mod, fun, arity) do
       {:no_docs, term}   -> IO.puts "#{term} was not compiled with docs"
       {:not_found, term} -> IO.puts "#{term} not found"
-      {:ok, results}     -> print_docs(results)
+      {:ok, results}     ->
+        for {title, doc} <- results do
+          IO.ANSI.Docs.print_heading(title, monochrome_colors)
+          IO.ANSI.Docs.print(doc, monochrome_colors)
+        end
     end
   end
 
   # Retrieve documentation for a Module
   defp docs(mod, nil, nil) do
     case docs = Code.get_docs(mod, :moduledoc) do
-      {_, binary} when is_binary(binary) -> {:ok, [ {"#{mod}", binary} ]}
-      {_,_} -> {:not_found, "#{mod}"}
-      _ -> {:no_docs, "#{mod}"}
+      {_, binary} when is_binary(binary)  -> {:ok, [{"#{mod}", binary}]}
+      {message, term}                     -> {:not_found, term}
     end
   end
 
@@ -46,13 +49,6 @@ defmodule Eh do
       if result !=  [], do: {:ok, result}, else: {:not_found, term}
     else
       {:no_docs, term}
-    end
-  end
-
-  defp print_docs(results) do
-    for {title, doc} <- results do
-      IO.ANSI.Docs.print_heading(title, monochrome_colors)
-      IO.ANSI.Docs.print(doc, monochrome_colors)
     end
   end
 
