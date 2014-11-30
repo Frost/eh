@@ -27,8 +27,8 @@ for Elixir files, and be able to lookup Elixir documentation with `K`.
 
 Examples:
 
-* `eh is_binary`           - Module docs for `Kernel.is_binary`
 * `eh String`              - Module docs for `String`
+* `eh is_binary`           - Docs for `Kernel.is_binary`
 * `eh String.to_integer`   - Docs for any arity of `String.to_integer`
 * `eh String.to_integer/1` - Docs for `String.to_integer/1`
 * `eh String.to_integer/2` - Docs.for `String.to_integer/2`
