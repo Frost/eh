@@ -8,11 +8,15 @@ defmodule Eh.Mixfile do
      escript: [main_module: Eh],
      description: description,
      package: package,
-     deps: []]
+     deps: dependencies]
   end
 
   def application do
     []
+  end
+
+  def dependencies do
+    [{ :ex_doc, "~> 0.6.1", only: :dev }]
   end
 
   defp description do
