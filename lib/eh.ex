@@ -14,9 +14,9 @@ defmodule Eh do
 
   # Retrieve documentation for a Module
   defp docs(mod, nil, nil) do
-    case docs = Code.get_docs(mod, :moduledoc) do
+    case Code.get_docs(mod, :moduledoc) do
       {_, binary} when is_binary(binary)  -> {:ok, [{"#{mod}", binary}]}
-      {message, term}                     -> {:not_found, term}
+      {message, term}                     -> {message, term}
     end
   end
 
