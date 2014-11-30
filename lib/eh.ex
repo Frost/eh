@@ -1,5 +1,29 @@
 defmodule Eh do
-  def main([definition | _tail]) do
+  @shortdoc "Lookup Elixir documentation from the command line"
+
+  @moduledoc """
+  Lookup Elixir documentation
+  """
+
+  @doc """
+  Escript entrypoint for Eh.
+  """
+  def main([definition | _tail]), do: lookup(definition)
+
+  @doc """
+  Lookup and print documentation on an Elixir term.
+
+  This is intended to work like using `IEx.Helpers.h` in the `iex`
+  shell, but without actually firing up `iex`.
+
+  `definition` can be something like:
+
+  * `String`
+  * `String.to_integer`
+  * `IO.ANSI.Docs.print`
+  * `IO.ANSI.Docs.print/2`
+  """
+  def lookup(definition) do
     {mod, fun, arity} = parse_input(definition)
     case docs(mod, fun, arity) do
       {:no_docs, term}   -> IO.puts "#{term} was not compiled with docs"

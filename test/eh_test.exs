@@ -4,7 +4,7 @@ defmodule EhTest do
   import ExUnit.CaptureIO
 
   defp capture_eh(term) do
-    capture_io(fn -> Eh.main([term]) end)
+    capture_io(fn -> Eh.lookup(term) end)
   end
 
   defp doc_match_regex(term) do
