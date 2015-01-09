@@ -8,7 +8,40 @@ from the command line.
 It prints the documentation for its first argument, if it can find any
 documentation on it.
 
-## Installation
+## Eh for your code
+
+Eh comes with a mix task for looking up code, `mix eh`. It can find
+documentation on any code it is compiled with, so if you install it
+standalone, it will only be able to lookup built-in Elixir documentation
+and its own documentation.
+
+What's more interesting is to use it to lookup documentation on your
+own packages, or on dependencies in your application. By adding `eh` as
+a development dependency to your package, you can do that from outside
+of `iex`, e.g. from your editor.
+
+### Setting up `eh` for your project
+
+Add `eh` as a development dependency to your project:
+
+```elixir
+# mix.exs
+
+def dependencies do
+  [{:eh, only: :dev}]
+end
+```
+
+Install dependencies
+
+    mix deps.get
+    mix deps.compile
+
+You should now be able to use `mix eh` to lookup code in your project!
+
+### Global installation
+
+You can also install eh for your 
 
 You can install `eh` with git, like so
 
@@ -27,11 +60,11 @@ for Elixir files, and be able to lookup Elixir documentation with `K`.
 
 Examples:
 
-* `eh String`              - Module docs for `String`
-* `eh is_binary`           - Docs for `Kernel.is_binary`
-* `eh String.to_integer`   - Docs for any arity of `String.to_integer`
-* `eh String.to_integer/1` - Docs for `String.to_integer/1`
-* `eh String.to_integer/2` - Docs.for `String.to_integer/2`
+* `mix eh String`              - Module docs for `String`
+* `mix eh is_binary`           - Docs for `Kernel.is_binary`
+* `mix eh String.to_integer`   - Docs for any arity of `String.to_integer`
+* `mix eh String.to_integer/1` - Docs for `String.to_integer/1`
+* `mix eh String.to_integer/2` - Docs for `String.to_integer/2`
 
 ## Why monochrome?
 
