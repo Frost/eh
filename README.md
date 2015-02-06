@@ -97,4 +97,3 @@ Pull requests are welcome.
 ## TODO
 
 * `eh String.to_integer(some, args)` -> `String.to_integer/2`
-* Support for code outside of Elixir core (my own projects, etc)
