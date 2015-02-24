@@ -2,7 +2,10 @@ defmodule Eh do
   @shortdoc "Lookup Elixir documentation from the command line"
 
   @moduledoc """
-  Lookup Elixir documentation
+  Lookup Elixir documentation for Elixir terms.
+
+  Eh works in the same way as Elixir's built-in IEx.Helpers.h, except that it
+  exposes that functionality as a mix task.
   """
 
   @doc """
@@ -26,9 +29,9 @@ defmodule Eh do
   def lookup(definition) do
     {mod, fun, arity} = parse_input(definition)
     case docs(mod, fun, arity) do
-      {:no_docs, term}   -> IO.puts "#{term} was not compiled with docs"
-      {:not_found, term} -> IO.puts "#{term} not found"
-      {:ok, results}     ->
+      {:no_docs, term}      -> IO.puts "#{term} was not compiled with docs"
+      {:not_found, term}    -> IO.puts "#{term} not found"
+      {:ok, results} ->
         for {title, doc} <- results do
           IO.ANSI.Docs.print_heading(title, monochrome_colors)
           IO.ANSI.Docs.print(doc, monochrome_colors)
@@ -40,10 +43,11 @@ defmodule Eh do
   defp docs(mod, nil, nil) do
     case Code.get_docs(mod, :moduledoc) do
       {_, binary} when is_binary(binary)  -> {:ok, [{"#{mod}", binary}]}
+      {line, nil} when is_number(line)    -> {:no_docs, mod}
       {message, term}                     -> {message, term}
+      nil -> { :no_docs, mod }
     end
   end
-
   # Try to find function in Kernel if mod is nil
   defp docs(nil, fun, arity) do
     docs(Kernel, fun, arity)
@@ -89,7 +93,6 @@ defmodule Eh do
   defp find_module(parts) when parts == [] do
     nil
   end
-
   defp find_module(parts) do
     mod = Module.concat(parts)
     case Code.ensure_loaded?(mod) do
@@ -122,6 +125,8 @@ defmodule Eh do
     end
   end
 
+  # Custom colors, kept in monochrome without any specific color choices, to
+  # work well with both dark an bright terminals.
   defp monochrome_colors do
     [enabled: true,
       doc_bold: [:bright],

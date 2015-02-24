@@ -1,6 +1,12 @@
 defmodule EhTest do
   use ExUnit.Case
 
+  defmodule NoDocs do
+    def no_docs do
+      # nothing
+    end
+  end
+
   import ExUnit.CaptureIO
 
   defp capture_eh(term) do
@@ -9,6 +15,16 @@ defmodule EhTest do
 
   defp doc_match_regex(term) do
     ~r"\e\[0m\n\e\[7m\e\[1m + Elixir.#{term} +\e\[0m\n\e\[0m\n"
+  end
+
+  test "prints info on missing @moduledoc" do
+    output = capture_eh("EhTest.NoDocs")
+    assert(Regex.match?(~r/NoDocs was not compiled with docs/, output))
+  end
+
+  test "prints info on missing @doc for function" do
+    output = capture_eh("EhTest.NoDocs.no_docs")
+    assert(Regex.match?(~r/NoDocs.no_docs was not compiled with docs/, output))
   end
 
   test "find docs for Kernel function without module definition" do
