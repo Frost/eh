@@ -3,7 +3,7 @@ defmodule Eh.Mixfile do
 
   def project do
     [app: :eh,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.0",
      escript: [main_module: Eh],
      description: description,
