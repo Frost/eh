@@ -8,9 +8,8 @@ defmodule Eh do
   exposes that functionality as a mix task.
   """
 
-  @doc """
-  Escript entrypoint for Eh.
-  """
+  # The main function has no @doc statement on purpose. The reason for this is
+  # that I want to be able to test functions that has no documentation
   def main([definition | _tail]), do: lookup(definition)
 
   @doc """
@@ -27,103 +26,85 @@ defmodule Eh do
   * `IO.ANSI.Docs.print/2`
   """
   def lookup(definition) do
-    {mod, fun, arity} = parse_input(definition)
-    case docs(mod, fun, arity) do
-      {:no_docs, term}      -> IO.puts "#{term} was not compiled with docs"
-      {:not_found, term}    -> IO.puts "#{term} not found"
-      {:ok, results} ->
-        for {title, doc} <- results do
+    case docs(InputParser.parse(definition)) do
+      :no_docs           -> IO.puts "No documentation for #{definition} was found"
+      {:not_found, mod}  -> IO.puts "Could not load module #{mod}"
+      {:ok, docs} ->
+        for {title, doc} <- Enum.reverse(docs) do
           IO.ANSI.Docs.print_heading(title, monochrome_colors)
           IO.ANSI.Docs.print(doc, monochrome_colors)
         end
     end
   end
 
+  # Find documentation for the specified {mod, fun, arity} tuple.
+  #
+  # Returns:
+  # - {:not_found, mod} if the module does not exist
+  # - {:no_docs, mod} if the module exists, but does not have docs
+  # - {:ok, [doc...]} for all matching doc strings
+  defp docs({nil, nil, nil}),
+    do: :not_found
   # Retrieve documentation for a Module
-  defp docs(mod, nil, nil) do
+  defp docs({mod, nil, nil}) do
     case Code.get_docs(mod, :moduledoc) do
-      {_, binary} when is_binary(binary)  -> {:ok, [{"#{mod}", binary}]}
-      {line, nil} when is_number(line)    -> {:no_docs, mod}
-      {message, term}                     -> {message, term}
-      nil -> { :no_docs, mod }
+      nil ->
+        {:not_found, mod}
+      {_, binary} when is_binary(binary) ->
+        {:ok, [{"#{mod}", binary}]}
     end
   end
   # Try to find function in Kernel if mod is nil
-  defp docs(nil, fun, arity) do
-    docs(Kernel, fun, arity)
-  end
-
-  # Retrieve documentation for all definitions of a Module.function
-  # The list comprehension here is borrowed from IEx.Introspection.
-  defp docs(mod, fun, nil) do
-    term = "#{mod}.#{fun}"
-    if docs = Code.get_docs(mod, :docs) do
-      result = for {{f, arity}, _ln, _tp, _a, doc} <- docs, f == fun, !!doc do
-        { "#{term}/#{arity}", doc }
-      end
-      if result !=  [], do: {:ok, result}, else: {:not_found, term}
-    else
-      {:no_docs, term}
-    end
-  end
-
+  defp docs({nil, fun, arity}),
+    do: docs({Kernel, fun, arity})
   # Retrieve documentation for a specific Module.function/arity
-  defp docs(mod, fun, arity) do
-    term = "#{mod}.#{fun}/#{arity}"
-    if docs = Code.get_docs(mod, :docs) do
-      result = for {{f, a}, _ln, _tp, _a, doc} <- docs, f == fun, a == arity, !!doc do
-        { term, doc }
-      end
-      if result !=  [], do: {:ok, result}, else: {:not_found, term}
-    else
-      {:no_docs, term}
+  # arity may be nil
+  # The list comprehension here is borrowed from IEx.Introspection.
+  defp docs(term) do
+    case filter_docs(term) do
+      nil ->
+        {mod, _, _} = term
+        {:not_found, mod}
+      [] ->
+        :no_docs
+      results -> {:ok, results}
     end
   end
 
-  defp parse_input(definition) do
-    parts = String.split(definition, ".")
-    mod = find_module(parts)
-    {fun, arity} = find_function_and_arity(parts)
-    {mod, fun, arity}
-  end
-
-  # From a list of parts, find a loaded module
-  # example: input: ["IO", "ANSI", "Docs", "print"] -> IO.ANSI.Docs
-  # example: input: ["String", "to_atom"]           -> String
-  defp find_module(parts) when parts == [] do
-    nil
-  end
-  defp find_module(parts) do
-    mod = Module.concat(parts)
-    case Code.ensure_loaded?(mod) do
-      true -> mod
-      false -> find_module(List.delete(parts, List.last(parts)))
+  # Filter out the relevant documentation chunks we need.
+  #
+  # Only include entries from Code.get_docs(mod, :docs) that:
+  # 1. Have documentation
+  # 2. Matches our fun/arity filter parameters
+  # 3. If arity is nil, include everything that matches fun
+  defp filter_docs({mod, fun, arity}) do
+    case Code.get_docs(mod, :docs) do
+      nil ->
+        nil
+      results ->
+        results
+        |> Enum.filter(fn (doc) -> filter_docs({fun, arity}, doc) end)
+        |> Enum.map(fn (doc) -> reformat_doc(mod, doc) end)
     end
   end
+  defp filter_docs(_filter, {_def, _ln, _tp, _args, nil}),
+    do: false
+  defp filter_docs(filter, {filter, _ln, _tp, _args, _doc}),
+    do: true
+  defp filter_docs({fun, nil}, {{fun, _arity}, _ln, _tp, _args, _doc}),
+    do: true
+  defp filter_docs(_filter, _doc),
+    do: false
 
-  # extracts function and arity
-  # example: input: ["IO", "ANSI", "Docs", "print"]   -> {:print, nil}
-  # example: input: ["String", "to_atom"]             -> {:to_atom, nil}
-  # example: input: ["IO", "ANSI", "Docs", "print/2"] -> {:print, 2}
-  # example: input: ["String", "to_atom/1"]           -> {:to_atom, 1}
-  defp find_function_and_arity(parts) do
-    mod = Module.concat(parts)
-    case Code.ensure_loaded?(mod) do
-      true -> {nil, nil}
-      false ->
-        fun_arity_regex = ~r/^(?<fun>[^.\/]+)(?:\/(?<arity>\d+))?$/
-        matches = Regex.named_captures(fun_arity_regex, List.last(parts))
-        %{"arity" => arity, "fun" => fun} = matches
+  # Reformat Elixir's internal structure to {{"Module.function/arity", doc}}
+  defp reformat_doc(mod, {{fun, arity}, _ln, _tp, _args, doc}),
+    do: {term({ mod, fun, arity }), doc}
 
-        if arity == "" do
-          arity = nil
-        else
-          arity = String.to_integer(arity)
-        end
-
-        {String.to_atom(fun), arity}
-    end
-  end
+  # Convert a {mod, fun, arity} tuple to a "Module.function/arity" string
+  defp term({mod, fun, nil}),
+    do: "#{mod}.#{fun}"
+  defp term({mod, fun, arity}),
+    do: "#{mod}.#{fun}/#{arity}"
 
   # Custom colors, kept in monochrome without any specific color choices, to
   # work well with both dark an bright terminals.

@@ -1,81 +1,71 @@
 defmodule EhTest do
   use ExUnit.Case
 
-  defmodule NoDocs do
-    def no_docs do
-      # nothing
-    end
-  end
-
   import ExUnit.CaptureIO
 
   defp capture_eh(term) do
     capture_io(fn -> Eh.lookup(term) end)
   end
 
+  defp no_docs(term) do
+    output = capture_eh(term)
+    Regex.match?(~r(No documentation for #{term} was found$), output)
+  end
+
+  defp found_docs_for(definition, match \\ nil) do
+    if !match, do: match = definition
+    output = capture_eh(definition)
+    Regex.match?(doc_match_regex(match), output)
+  end
+
   defp doc_match_regex(term) do
     ~r"\e\[0m\n\e\[7m\e\[1m + Elixir.#{term} +\e\[0m\n\e\[0m\n"
   end
 
-  test "prints info on missing @moduledoc" do
-    output = capture_eh("EhTest.NoDocs")
-    assert(Regex.match?(~r/NoDocs was not compiled with docs/, output))
-  end
-
-  test "prints info on missing @doc for function" do
-    output = capture_eh("EhTest.NoDocs.no_docs")
-    assert(Regex.match?(~r/NoDocs.no_docs was not compiled with docs/, output))
-  end
-
   test "find docs for Kernel function without module definition" do
-    output = capture_eh("is_binary")
-    assert(Regex.match?(doc_match_regex("Kernel.is_binary/1"), output))
+    assert found_docs_for("is_binary", "Kernel.is_binary/1")
   end
 
   test "find no docs for a non-existing kernel function" do
-    output = capture_eh("i_dont_exist")
-    assert Regex.match?(~r/i_dont_exist not found$/, output)
+    assert no_docs("i_dont_exist")
   end
 
   test "find docs for existing module" do
-    output = capture_eh("String")
-    assert(Regex.match?(doc_match_regex("String"), output))
+    assert found_docs_for("String")
   end
 
   test "find no docs for a non-existing module" do
     output = capture_eh("IDontExist")
-    assert Regex.match?(~r/IDontExist not found$/, output)
+    assert Regex.match?(~r(Could not load module Elixir.IDontExist), output)
   end
 
   test "find all docs for a module and function pair" do
-    output = capture_eh("String.to_integer")
-    assert(Regex.match?(doc_match_regex("String.to_integer/1"), output))
-    assert(Regex.match?(doc_match_regex("String.to_integer/2"), output))
+    assert found_docs_for("String.to_integer", "String.to_integer/1")
+    assert found_docs_for("String.to_integer", "String.to_integer/2")
   end
 
   test "find no docs for a non-existing module/function pair" do
-    output = capture_eh("Module.i_dont_exist")
-    assert Regex.match?(~r/Module.i_dont_exist not found$/, output)
+    assert no_docs("Module.i_dont_exist")
   end
 
   test "find docs for a specific module, function and arity" do
-    output = capture_eh("String.to_integer/1")
-    assert(Regex.match?(doc_match_regex("String.to_integer/1"), output))
-    refute(Regex.match?(doc_match_regex("String.to_integer/2"), output))
+    assert found_docs_for("String.to_integer/1")
+    refute found_docs_for("String.to_integer/1", "String.to_integer/2")
   end
 
   test "find no docs for a non-existing module/function/arity" do
-    output = capture_eh("String.to_integer/0")
-    assert Regex.match?(~r/String.to_integer\/0 not found$/, output)
+    assert no_docs("String.to_integer/0")
+  end
+
+  test "find no docs for a function lacking documentation" do
+    assert no_docs("Eh.main")
   end
 
   test "find docs for a nested module" do
-    output = capture_eh("IO.ANSI")
-    assert(Regex.match?(doc_match_regex("IO.ANSI"), output))
+    assert found_docs_for("IO.ANSI")
   end
 
   test "find docs for a function in a nested module" do
-    output = capture_eh("IO.ANSI.Docs.print")
-    assert(Regex.match?(doc_match_regex("IO.ANSI.Docs.print/2"), output))
+    assert found_docs_for("IO.ANSI.Docs.print", "IO.ANSI.Docs.print/2")
   end
 end
