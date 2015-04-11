@@ -1,5 +1,7 @@
 # Eh
 
+![Build status](http://img.shields.io/travis/Frost/eh.svg)
+
 Look up Elixir documentation from the command line
 
 `eh` basically works like `IEx.Helpers.h`, except that you can run it
