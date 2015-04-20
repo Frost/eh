@@ -41,6 +41,9 @@ Install dependencies
 
 You should now be able to use `mix eh` to lookup code in your project!
 
+If you are a vim user, you can also `set :keywordprog=mix\ eh`, and have
+`K` look up code in your project.
+
 ### Global installation
 
 You can also install eh for your 
