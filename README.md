@@ -54,6 +54,7 @@ You can install `eh` with git, like so
 
     git clone git@github.com:Frost/eh.git
     cd eh
+    mix deps.get
     mix escript.build
     ./eh Eh
 
