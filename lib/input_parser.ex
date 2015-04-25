@@ -13,7 +13,6 @@ defmodule InputParser do
   {Module, function, arity}, so that it can be used for documentation
   lookup.
 
-
       Examples:
 
       iex> InputParser.parse("String.to_integer")
