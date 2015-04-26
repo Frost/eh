@@ -31,10 +31,30 @@ defmodule Eh do
       :no_docs           -> IO.puts "No documentation for #{definition} was found"
       {:not_found, mod}  -> IO.puts "Could not load module #{mod}"
       {:ok, docs} ->
-        for {title, doc} <- Enum.reverse(docs) do
-          IO.ANSI.Docs.print_heading(title, monochrome_colors)
+        for {term, doc} <- Enum.reverse(docs) do
+          IO.ANSI.Docs.print_heading(title(term), monochrome_colors)
           IO.ANSI.Docs.print(doc, monochrome_colors)
         end
+    end
+  end
+
+  @doc """
+  List all public functions of a module.
+
+      Examples:
+
+      iex> Eh.functions("Eh")
+      ["Eh.main/1", "Eh.lookup/1", "Eh.functions/1"]
+  """
+  def functions(module) do
+    module = Module.concat([module])
+    case Code.ensure_loaded?(module) do
+      true ->
+        Code.get_docs(module, :docs)
+        |> Enum.map(fn (doc) -> reformat_doc(module, doc) end)
+        |> Enum.map(fn ({term, _doc}) -> title(term) end)
+      false ->
+        []
     end
   end
 
@@ -52,7 +72,8 @@ defmodule Eh do
       nil ->
         {:not_found, mod}
       {_, binary} when is_binary(binary) ->
-        {:ok, [{"#{mod}", binary}]}
+        doc = append_functions(mod, binary)
+        {:ok, [{{mod}, doc}]}
     end
   end
   # Try to find function in Kernel if mod is nil
@@ -88,7 +109,7 @@ defmodule Eh do
         |> Enum.map(fn (doc) -> reformat_doc(mod, doc) end)
     end
   end
-  defp filter_docs(_filter, {_def, _ln, _tp, _args, nil}),
+  defp filter_docs(_filter, {_, _, _, _, doc}) when doc in [nil, false],
     do: false
   defp filter_docs(filter, {filter, _ln, _tp, _args, _doc}),
     do: true
@@ -99,13 +120,26 @@ defmodule Eh do
 
   # Reformat Elixir's internal structure to {{"Module.function/arity", doc}}
   defp reformat_doc(mod, {{fun, arity}, _ln, _tp, _args, doc}),
-    do: {term({ mod, fun, arity }), doc}
+    do: {{mod, fun, arity}, doc}
 
   # Convert a {mod, fun, arity} tuple to a "Module.function/arity" string
-  defp term({mod, fun, nil}),
+  defp title({mod}),
+    do: "#{mod}"
+  defp title({mod, fun, nil}),
     do: "#{mod}.#{fun}"
-  defp term({mod, fun, arity}),
+  defp title({mod, fun, arity}),
     do: "#{mod}.#{fun}/#{arity}"
+
+  defp append_functions(mod, moduledoc) do
+    functions = functions(mod)
+    |> Enum.map(fn (fun) -> String.replace(fun, ~r(^.+\.), "") end)
+    |> Enum.map(fn(fun) -> "\n* #{fun}" end)
+
+    moduledoc <> """
+
+    Public functions:
+    """ <> Enum.join(functions)
+  end
 
   # Custom colors, kept in monochrome without any specific color choices, to
   # work well with both dark an bright terminals.
