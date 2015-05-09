@@ -50,9 +50,8 @@ defmodule Eh do
     module = Module.concat([module])
     case Code.ensure_loaded?(module) do
       true ->
-        Code.get_docs(module, :docs)
-        |> Enum.map(fn (doc) -> reformat_doc(module, doc) end)
-        |> Enum.map(fn ({term, _doc}) -> title(term) end)
+        apply(module, :__info__, [:functions])
+        |> Enum.map(fn {fun, arity} -> title {module, fun, arity} end)
       false ->
         []
     end
